@@ -9,7 +9,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(rstanarm)
-library(report)
+#library(report)
+library(devtools)
 library(tidyverse)
 
 load("nes.rda")
@@ -80,12 +81,12 @@ print(summary(fit_3), detail = FALSE, digits = 2)
 But that adds a bunch of junk, including run-off-the-page text. Maybe there are options in something like `print.stanmvreg()` which might be helpful. Has no one bothered to ask on RStudio Community?
 
 ```{r left_over, include=FALSE}
-x %>% 
+preds <- x %>% 
   select(partyid7, gender, race, real_ideo) %>% 
   mutate(pred_gender = predict(fit_1, x)) %>% 
   mutate(pred_race = predict(fit_2, x)) %>% 
-  mutate(pred_idea = predict(fit_3, x)) %>% 
-  slice(8000:8010) # Interesting rows.
+  mutate(pred_idea = predict(fit_3, x))
+#  slice(8000:8010) # Interesting rows.
 
 # How similar/different are these predictions?
 
@@ -98,6 +99,17 @@ x %>%
 
 ```
 
+```{r}
+preds <- preds %>% 
+  mutate(diff_gender = partyid7 - pred_gender) %>% 
+  mutate(diff_race = partyid7 - pred_race) %>% 
+  mutate(diff_idea = partyid7 - pred_idea)
+
+
+preds %>% 
+  ggplot(aes(x = diff_gender)) +
+  geom_histogram(binwidth = 0.5, color = "white")
+```
 
 ```{r}
 # Fit a model similar to that in Gelman for the whole period. Interpret the
@@ -114,5 +126,11 @@ x %>%
 # least one of the panes from page 142?
 
 
+```
+
+```{r}
+fit_4 <- stan_glm(data = x, partyid7 ~ gender + race + real_ideo, refresh = 0)
+
+fit_4
 ```
 

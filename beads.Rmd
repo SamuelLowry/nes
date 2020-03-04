@@ -1,0 +1,32 @@
+---
+title: "Sampling"
+author: "Samuel Lowry"
+date: "3/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(infer)
+library(googlesheets4)
+```
+
+```{r}
+sheets_deauth()
+
+samp <- sheets_read(ss = "14HmwN2cEVAJHupuehCuLdwG9BXtR3COrxDgaaylLhkA") %>% 
+  mutate(prop_red = Red/25)
+
+urn <- tibble(bead_id = 1:10000,
+              color = c(rep(1, 2000), rep(0, 8000)))
+urn_sample <- urn %>% 
+  rep_sample_n(size = 25, reps = 51) %>% 
+  group_by(replicate)%>% 
+  summarize(prop_red = sum(color) / 25)
+
+urn_sample %>% 
+  ggplot(aes(x = prop_red)) + 
+  geom_histogram()
+```
+
